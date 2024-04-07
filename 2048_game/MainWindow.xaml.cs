@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
@@ -119,6 +119,7 @@ namespace _2048_game
                         int iterColumnOrigin = 0;
                         int iterRow = 1;
                         int iterRowOrigin = 0;
+                        bool lmoved = false;
                         switch (direction)
                         {
                             case "l": //Left
@@ -133,11 +134,12 @@ namespace _2048_game
                                             moved = true;
                                         }
 
-                                        else if (field[i, j - iterColumn] == field[i, j - iterColumnOrigin])
+                                        else if (field[i, j - iterColumn] == field[i, j - iterColumnOrigin] && lmoved == false)
                                         {
                                             field[i, j - iterColumn] += field[i, j - iterColumnOrigin];
                                             field[i, j - iterColumnOrigin] = 0;
                                             moved = true;
+                                            lmoved = true;
                                         }
                                         else break;
 
@@ -151,36 +153,39 @@ namespace _2048_game
                                 }
 
                                 break;
+                                
 
-                            case "u": //Up
-                                while (true)
+
+                        case "u": //Up
+                            while (true)
+                            {
+                                try
                                 {
-                                    try
+                                    if (field[i - iterRow, j] == 0)
                                     {
-                                        if (field[i - iterRow, j] == 0)
-                                        {
-                                            field[i - iterRow, j] = field[i - iterRowOrigin, j];
-                                            field[i - iterRowOrigin, j] = 0;
-                                            moved = true;
-                                        }
-                                        else if (field[i - iterRow, j] == field[i - iterRowOrigin, j])
-                                        {
-                                            field[i - iterRow, j] += field[i - iterRowOrigin, j];
-                                            field[i - iterRowOrigin, j] = 0;
-                                            moved = true;
-                                        }
-                                        else break;
-
-                                        iterRow += 1;
-                                        iterRowOrigin += 1;
+                                        field[i - iterRow, j] = field[i - iterRowOrigin, j];
+                                        field[i - iterRowOrigin, j] = 0;
+                                        moved = true;
                                     }
-                                    catch
+                                    else if (field[i - iterRow, j] == field[i - iterRowOrigin, j] && lmoved == false)
                                     {
-                                        break;
+                                        field[i - iterRow, j] += field[i - iterRowOrigin, j];
+                                        field[i - iterRowOrigin, j] = 0;
+                                        moved = true;
+                                        lmoved = true;
                                     }
+                                    else break;
+                        
+                                    iterRow += 1;
+                                    iterRowOrigin += 1;
                                 }
-
-                                break;
+                                catch
+                                {
+                                    break;
+                                }
+                            }
+                        
+                            break;
                         }
                     }
                 }
@@ -196,6 +201,7 @@ namespace _2048_game
                         int iterColumnOrigin = 0;
                         int iterRow = 1;
                         int iterRowOrigin = 0;
+                        bool lmoved = false;
                         switch (direction)
                         {
                             case "r": //Right
@@ -210,11 +216,12 @@ namespace _2048_game
                                             moved = true;
                                         }
 
-                                        else if (field[i, j + iterColumn] == field[i, j + iterColumnOrigin])
+                                        else if (field[i, j + iterColumn] == field[i, j + iterColumnOrigin] && lmoved == false)
                                         {
                                             field[i, j + iterColumn] += field[i, j + iterColumnOrigin];
                                             field[i, j + iterColumnOrigin] = 0;
                                             moved = true;
+                                            lmoved = true;
                                         }
                                         else break;
 
@@ -240,11 +247,12 @@ namespace _2048_game
                                             field[i + iterRowOrigin, j] = 0;
                                             moved = true;
                                         }
-                                        else if (field[i + iterRow, j] == field[i + iterRowOrigin, j])
+                                        else if (field[i + iterRow, j] == field[i + iterRowOrigin, j] && lmoved == false)
                                         {
                                             field[i + iterRow, j] += field[i + iterRowOrigin, j];
                                             field[i + iterRowOrigin, j] = 0;
                                             moved = true;
+                                            lmoved = true;
                                         }
                                         else break;
 
