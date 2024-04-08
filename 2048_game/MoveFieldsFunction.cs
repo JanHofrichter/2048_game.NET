@@ -32,13 +32,12 @@ namespace _2048_game
                                         }
 
                                         else if (field[i, j - iterColumn] == field[i, j - iterColumnOrigin] &&
-                                                 lmoved == false)
+                                                 iterColumn <=2)
                                         {
                                             field[i, j - iterColumn] += field[i, j - iterColumnOrigin];
                                             field[i, j - iterColumnOrigin] = 0;
                                             new_score += field[i, j - iterColumn];
                                             moved = true;
-                                            lmoved = true;
                                         }
                                         else break;
 
@@ -118,13 +117,12 @@ namespace _2048_game
                                         }
 
                                         else if (field[i, j + iterColumn] == field[i, j + iterColumnOrigin] &&
-                                                 lmoved == false)
+                                                 iterColumn <=2)
                                         {
                                             field[i, j + iterColumn] += field[i, j + iterColumnOrigin];
                                             field[i, j + iterColumnOrigin] = 0;
                                             new_score += field[i, j + iterColumn];
                                             moved = true;
-                                            lmoved = true;
                                         }
                                         else break;
 
