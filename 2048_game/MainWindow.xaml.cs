@@ -1,292 +1,181 @@
-﻿﻿using System;
-using System.Drawing;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 
 
 namespace _2048_game
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow
     {
         private readonly Random _random = new Random();
         private const int GridSize = 4;
-
+        private int[,] _grid = new int[GridSize, GridSize];
+        private int _currentScore;
+        private int _bestScore;
+        private static readonly TileColors TileColors = new TileColors();
+        private readonly Dictionary<int, SolidColorBrush> _colorDictionary = TileColors._tileColors;
+        private readonly Dictionary<int, SolidColorBrush> _colorFontDictionary = TileColors._fontColors;
+        
         public MainWindow()
         {
             InitializeComponent();
-
-
-            int[,] grid = new int[GridSize, GridSize];
-            this.KeyUp += (sender, e) => Key_Pressed(sender, e, grid);
-
-            AddRandomTile(grid);
-            AddRandomTile(grid);
-            InitializeGrid(grid);
-        }
-
-        private readonly Dictionary<int, SolidColorBrush> _tileColors = new Dictionary<int, SolidColorBrush>()
-        {
-            { 0, new SolidColorBrush(System.Windows.Media.Color.FromRgb(204, 192, 179)) },
-            { 2, new SolidColorBrush(System.Windows.Media.Color.FromRgb(238, 228, 218)) }, 
-            { 4, new SolidColorBrush(System.Windows.Media.Color.FromRgb(237, 224, 200)) }, 
-            { 8, new SolidColorBrush(System.Windows.Media.Color.FromRgb(242, 177, 121)) },      
-            { 16, new SolidColorBrush(System.Windows.Media.Color.FromRgb(245, 149, 99)) },     
-            { 32, new SolidColorBrush(System.Windows.Media.Color.FromRgb(246, 124, 95)) },    
-            { 64, new SolidColorBrush(System.Windows.Media.Color.FromRgb(246, 94, 59)) },    
-            { 128, new SolidColorBrush(System.Windows.Media.Color.FromRgb(237, 207, 114)) },   
-            { 256, new SolidColorBrush(System.Windows.Media.Color.FromRgb(237, 204, 97)) },    
-            { 512, new SolidColorBrush(System.Windows.Media.Color.FromRgb(237, 200, 80)) },   
-            { 1024, new SolidColorBrush(System.Windows.Media.Color.FromRgb(237, 197, 63)) },   
-            { 2048, new SolidColorBrush(System.Windows.Media.Color.FromRgb(237, 194, 46)) },   
             
+            MoveFieldsFunction moveFieldsFunction = new MoveFieldsFunction();
 
-            // ... Add colors for other tile values using System.Windows.Media.Color.FromRgb(red, green, blue)
-        };
 
-        private void Key_Pressed(object sender, KeyEventArgs e, int[,] field)
-        {
-            switch (e.Key)
-            {
-                case Key.Left:
-                    MoveFields("l", field);
-                    break;
-                case Key.Right:
-                    MoveFields("r", field);
-                    break;
-                case Key.Up:
-                    MoveFields("u", field);
-                    break;
-                case Key.Down:
-                    MoveFields("d", field);
-                    break;
-            }
-
-            InitializeGrid(field);
+            this.KeyUp += (sender, e) => Key_Pressed(e, moveFieldsFunction);
         }
 
-        private void InitializeGrid(int[,] field)
+        private void StartGame()
         {
-            HerniPole.Children.Clear(); // Clear the grid before adding new tiles
+            AddRandomTile();
+            AddRandomTile();
+            InitializeGrid();
+        }
 
+        private bool CheckGameEnd(int[,] field)
+        {
             for (int i = 0; i < field.GetLength(0); i++)
             {
                 for (int j = 0; j < field.GetLength(1); j++)
                 {
-                    Grid cellgrid = new Grid();
-                    cellgrid.Background = _tileColors[field[i, j]]; // Use color from dictionary
-                    
-                    TextBlock tile = new TextBlock();
-                    tile.Text = field[i, j].ToString();
-                    tile.HorizontalAlignment = HorizontalAlignment.Center;
-                    tile.VerticalAlignment = VerticalAlignment.Center;
-                    tile.FontSize = 40;
-                    tile.FontWeight = FontWeights.Bold;
-                    if (field[i, j] <= 4)
+                    if (field[i, j] == 0)
                     {
-                        tile.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(119, 110, 101)); // Ensure text is visible
+                        return false;
                     }
                     else
                     {
-                        tile.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(249, 246, 242)); // Ensure text is visible
-                    }
-                    // tile.Background = _tileColors[field[i, j]]; // Use color from dictionary for the text
-
-            
-                    cellgrid.Children.Add(tile);  // Add TextBlock to the cell Grid
-
-                    Grid.SetRow(cellgrid, i);
-                    Grid.SetColumn(cellgrid, j);
-
-                    HerniPole.Children.Add(cellgrid);  // Add cell Grid to the outer Grid
-                }
-            }
-        }
-
-
-        private void MoveFields(string direction, int[,] field)
-        {
-            bool moved = false;
-            for (int i = 0; i < field.GetLength(0); i++)
-            {
-                for (int j = 0; j < field.GetLength(1); j++)
-                {
-                    if (field[i, j] != 0)
-                    {
-                        int iterColumn = 1;
-                        int iterColumnOrigin = 0;
-                        int iterRow = 1;
-                        int iterRowOrigin = 0;
-                        bool lmoved = false;
-                        switch (direction)
+                        try
                         {
-                            case "l": //Left
-                                while (true)
-                                {
-                                    try
-                                    {
-                                        if (field[i, j - iterColumn] == 0)
-                                        {
-                                            field[i, j - iterColumn] = field[i, j - iterColumnOrigin];
-                                            field[i, j - iterColumnOrigin] = 0;
-                                            moved = true;
-                                        }
-
-                                        else if (field[i, j - iterColumn] == field[i, j - iterColumnOrigin] && lmoved == false)
-                                        {
-                                            field[i, j - iterColumn] += field[i, j - iterColumnOrigin];
-                                            field[i, j - iterColumnOrigin] = 0;
-                                            moved = true;
-                                            lmoved = true;
-                                        }
-                                        else break;
-
-                                        iterColumn += 1;
-                                        iterColumnOrigin += 1;
-                                    }
-                                    catch
-                                    {
-                                        break;
-                                    }
-                                }
-
-                                break;
-                                
-
-
-                        case "u": //Up
-                            while (true)
+                            if (field[i, j] == field[i + 1, j])
                             {
-                                try
-                                {
-                                    if (field[i - iterRow, j] == 0)
-                                    {
-                                        field[i - iterRow, j] = field[i - iterRowOrigin, j];
-                                        field[i - iterRowOrigin, j] = 0;
-                                        moved = true;
-                                    }
-                                    else if (field[i - iterRow, j] == field[i - iterRowOrigin, j] && lmoved == false)
-                                    {
-                                        field[i - iterRow, j] += field[i - iterRowOrigin, j];
-                                        field[i - iterRowOrigin, j] = 0;
-                                        moved = true;
-                                        lmoved = true;
-                                    }
-                                    else break;
-                        
-                                    iterRow += 1;
-                                    iterRowOrigin += 1;
-                                }
-                                catch
-                                {
-                                    break;
-                                }
+                                return false;
                             }
-                        
-                            break;
                         }
-                    }
-                }
-            }
-
-            for (int i = field.GetLength(0) - 1; i >= 0; i--)
-            {
-                for (int j = field.GetLength(1) - 1; j >= 0; j--)
-                {
-                    if (field[i, j] != 0)
-                    {
-                        int iterColumn = 1;
-                        int iterColumnOrigin = 0;
-                        int iterRow = 1;
-                        int iterRowOrigin = 0;
-                        bool lmoved = false;
-                        switch (direction)
+                        catch
                         {
-                            case "r": //Right
-                                while (true)
-                                {
-                                    try
-                                    {
-                                        if (field[i, j + iterColumn] == 0)
-                                        {
-                                            field[i, j + iterColumn] = field[i, j + iterColumnOrigin];
-                                            field[i, j + iterColumnOrigin] = 0;
-                                            moved = true;
-                                        }
+                            // ignored
+                        }
 
-                                        else if (field[i, j + iterColumn] == field[i, j + iterColumnOrigin] && lmoved == false)
-                                        {
-                                            field[i, j + iterColumn] += field[i, j + iterColumnOrigin];
-                                            field[i, j + iterColumnOrigin] = 0;
-                                            moved = true;
-                                            lmoved = true;
-                                        }
-                                        else break;
-
-                                        iterColumn += 1;
-                                        iterColumnOrigin += 1;
-                                    }
-                                    catch
-                                    {
-                                        break;
-                                    }
-                                }
-
-                                break;
-
-                            case "d": //Down
-                                while (true)
-                                {
-                                    try
-                                    {
-                                        if (field[i + iterRow, j] == 0)
-                                        {
-                                            field[i + iterRow, j] = field[i + iterRowOrigin, j];
-                                            field[i + iterRowOrigin, j] = 0;
-                                            moved = true;
-                                        }
-                                        else if (field[i + iterRow, j] == field[i + iterRowOrigin, j] && lmoved == false)
-                                        {
-                                            field[i + iterRow, j] += field[i + iterRowOrigin, j];
-                                            field[i + iterRowOrigin, j] = 0;
-                                            moved = true;
-                                            lmoved = true;
-                                        }
-                                        else break;
-
-                                        iterRow += 1;
-                                        iterRowOrigin += 1;
-                                    }
-                                    catch
-                                    {
-                                        break;
-                                    }
-                                }
-
-                                break;
+                        try
+                        {
+                            if (field[i, j] == field[i, j + 1])
+                            {
+                                return false;
+                            }
+                        }
+                        catch
+                        {
+                            //ignored
                         }
                     }
                 }
             }
 
-            if (moved == true)
-            {
-                AddRandomTile(field);
-            }
+            return true;
         }
 
-        private void AddRandomTile(int[,] field)
+        private void Key_Pressed(KeyEventArgs e,
+            MoveFieldsFunction moveFieldsFunction)
+        {
+            var (moved, newScore) = e.Key switch
+            {
+                Key.Left => moveFieldsFunction.MoveFields("l", _grid),
+                Key.Right => moveFieldsFunction.MoveFields("r", _grid),
+                Key.Up => moveFieldsFunction.MoveFields("u", _grid),
+                Key.Down => moveFieldsFunction.MoveFields("d", _grid),
+                _ => (false, 0)
+            };
+            _currentScore += newScore;
+            // return (moved.Item1, moved.Item2);
+            if (CheckGameEnd(_grid))
+            {
+                Console.WriteLine("GAME END!");
+                _bestScore = _currentScore;
+                ScoreTextBlock.Text = $"Score: {_currentScore}";
+                BestScoreTextBlock.Text = $"Best: {_bestScore}";
+            }
+            else if (moved)
+            {
+                AddRandomTile();
+                InitializeGrid();
+            }
+            
+        }
+
+        private void InitializeGrid()
+        {
+            HerniPole.Children.Clear(); // Clear the grid before adding new tiles
+            ScoreTextBlock.Text = $"Score: {_currentScore}";
+            BestScoreTextBlock.Text = $"Best: {_bestScore}";
+            for (int i = 0; i < _grid.GetLength(0); i++)
+            {
+                for (int j = 0; j < _grid.GetLength(1); j++)
+                {
+                    Border border = new Border
+                    {
+                        BorderBrush = _colorFontDictionary[2],
+                        BorderThickness = new Thickness(10)
+                    };
+                    
+                    Grid cellgrid = new Grid
+                    {
+                        Background = _colorDictionary[_grid[i, j]] // Use color from dictionary
+                    };
+
+                    TextBlock tile = new TextBlock
+                    {
+                        Text = _grid[i, j].ToString(),
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        FontSize = 30,
+                        FontWeight = FontWeights.Bold
+                    };
+
+                    if (_grid[i, j] <= 4)
+                    {
+                        tile.Foreground = _colorFontDictionary[0]; // Ensure text is visible
+                    }
+                    else
+                    {
+                        tile.Foreground = _colorFontDictionary[1]; // Ensure text is visible
+                    }
+
+                    cellgrid.Children.Add(tile); // Add TextBlock to the cell Grid
+
+                    border.Child = cellgrid;
+
+                    Grid.SetRow(border, i);
+                    Grid.SetColumn(border, j);
+
+                    HerniPole.Children.Add(border); // Add bordered cell to the outer Grid 
+                }
+            }
+        }
+        
+        private void NewGameButton_Click(object sender, RoutedEventArgs e)
+        {
+            _grid = new int[GridSize, GridSize];
+            if (_currentScore > _bestScore)
+            {
+                _bestScore = _currentScore;
+            }
+            _currentScore = 0;
+            StartGame();
+            
+        }
+
+        private void AddRandomTile()
         {
             int row, col;
             do
             {
                 row = _random.Next(0, GridSize);
                 col = _random.Next(0, GridSize);
-            } while (field[row, col] != 0);
+            } while (_grid[row, col] != 0);
 
-            field[row, col] = _random.Next(4) != 1 ? 2 : 4;
+            _grid[row, col] = _random.Next(4) != 1 ? 2 : 4;
         }
     }
 }
