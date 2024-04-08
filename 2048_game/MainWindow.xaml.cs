@@ -2,6 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Color = System.Drawing.Color;
 
 
 namespace _2048_game
@@ -16,11 +17,13 @@ namespace _2048_game
         private static readonly TileColors TileColors = new TileColors();
         private readonly Dictionary<int, SolidColorBrush> _colorDictionary = TileColors._tileColors;
         private readonly Dictionary<int, SolidColorBrush> _colorFontDictionary = TileColors._fontColors;
-        
+        private readonly Dictionary<int, SolidColorBrush> _colorDictionaryDark = TileColors._tileColorsDark;
+        private readonly Dictionary<int, SolidColorBrush> _colorFontDictionaryDark = TileColors._fontColorsDark;
+
         public MainWindow()
         {
             InitializeComponent();
-            
+
             MoveFieldsFunction moveFieldsFunction = new MoveFieldsFunction();
 
 
@@ -31,7 +34,7 @@ namespace _2048_game
         {
             AddRandomTile();
             AddRandomTile();
-            InitializeGrid();
+            InitializeGrid(false);
         }
 
         private bool CheckGameEnd(int[,] field)
@@ -88,40 +91,76 @@ namespace _2048_game
                 _ => (false, 0)
             };
             _currentScore += newScore;
-            // return (moved.Item1, moved.Item2);
             if (CheckGameEnd(_grid))
             {
                 Console.WriteLine("GAME END!");
                 _bestScore = _currentScore;
-                ScoreTextBlock.Text = $"Score: {_currentScore}";
-                BestScoreTextBlock.Text = $"Best: {_bestScore}";
+                InitializeGrid(true);
+
             }
             else if (moved)
             {
                 AddRandomTile();
-                InitializeGrid();
+                InitializeGrid(false);
             }
-            
         }
 
-        private void InitializeGrid()
+        private void InitializeGrid(bool endGame)
         {
             HerniPole.Children.Clear(); // Clear the grid before adding new tiles
             ScoreTextBlock.Text = $"Score: {_currentScore}";
             BestScoreTextBlock.Text = $"Best: {_bestScore}";
+            SolidColorBrush bordercolor;
+            SolidColorBrush fontcolorsmall;
+            SolidColorBrush fontcolorbig;
+            SolidColorBrush cellcolor;
+            if (endGame)
+            {
+                bordercolor = _colorFontDictionaryDark[2];
+                fontcolorsmall = _colorFontDictionaryDark[0];
+                fontcolorbig = _colorFontDictionaryDark[1]; 
+            }
+            else
+            {
+                bordercolor = _colorFontDictionary[2];
+                fontcolorsmall = _colorFontDictionary[0];
+                fontcolorbig = _colorFontDictionary[1]; 
+            }
+            
             for (int i = 0; i < _grid.GetLength(0); i++)
             {
                 for (int j = 0; j < _grid.GetLength(1); j++)
                 {
+                    if (endGame)
+                    {
+                        cellcolor = _colorDictionaryDark[_grid[i, j]];
+                        TextBlock gameOverText = new TextBlock
+                        {
+                            Text = "GAME OVER!!!",
+                            FontSize = 40,
+                            FontWeight = FontWeights.Bold,
+                            HorizontalAlignment = HorizontalAlignment.Center,
+                            VerticalAlignment = VerticalAlignment.Center,
+                            Foreground = Brushes.White
+                        };
+                        
+                        HerniPole.Children.Add(gameOverText);
+                        Grid.SetRow(gameOverText, 1); // Place in the center (assuming 4 rows)
+                        Grid.SetColumnSpan(gameOverText, 4); // Span across all columns
+                    }
+                    else
+                    {
+                        cellcolor = _colorDictionary[_grid[i, j]];
+                    }
                     Border border = new Border
                     {
-                        BorderBrush = _colorFontDictionary[2],
+                        BorderBrush = bordercolor,
                         BorderThickness = new Thickness(10)
                     };
-                    
+
                     Grid cellgrid = new Grid
                     {
-                        Background = _colorDictionary[_grid[i, j]] // Use color from dictionary
+                        Background = cellcolor // Use color from dictionary
                     };
 
                     TextBlock tile = new TextBlock
@@ -135,11 +174,11 @@ namespace _2048_game
 
                     if (_grid[i, j] <= 4)
                     {
-                        tile.Foreground = _colorFontDictionary[0]; // Ensure text is visible
+                        tile.Foreground = fontcolorsmall; // Ensure text is visible
                     }
                     else
                     {
-                        tile.Foreground = _colorFontDictionary[1]; // Ensure text is visible
+                        tile.Foreground = fontcolorbig; // Ensure text is visible
                     }
 
                     cellgrid.Children.Add(tile); // Add TextBlock to the cell Grid
@@ -150,10 +189,12 @@ namespace _2048_game
                     Grid.SetColumn(border, j);
 
                     HerniPole.Children.Add(border); // Add bordered cell to the outer Grid 
+                    
+                    
                 }
             }
         }
-        
+
         private void NewGameButton_Click(object sender, RoutedEventArgs e)
         {
             _grid = new int[GridSize, GridSize];
@@ -161,9 +202,9 @@ namespace _2048_game
             {
                 _bestScore = _currentScore;
             }
+
             _currentScore = 0;
             StartGame();
-            
         }
 
         private void AddRandomTile()
