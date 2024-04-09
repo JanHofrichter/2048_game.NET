@@ -4,177 +4,196 @@ namespace _2048_game
     {
         public (bool, int) MoveFields(string direction, int[,] field)
         {
-            int new_score = 0;
+            int newScore = 0;
             bool moved = false;
-            for (int i = 0; i < field.GetLength(0); i++)
+            switch (direction)
             {
-                bool lmoved = false;
-                for (int j = 0; j < field.GetLength(1); j++)
-                {
-                    if (field[i, j] != 0)
+                case "l": //Left
+                    for (int i = 0; i < field.GetLength(0); i++)
                     {
-                        int iterColumn = 1;
-                        int iterColumnOrigin = 0;
-                        int iterRow = 1;
-                        int iterRowOrigin = 0;
-                        switch (direction)
+                        int merged = 0;
+                        for (int j = 0; j < field.GetLength(1); j++)
                         {
-                            case "l": //Left
+                            if (field[i, j] != 0)
+                            {
+                                int iterNext = 1;
+                                int iterOriginal = 0;
                                 while (true)
                                 {
                                     try
                                     {
-                                        if (field[i, j - iterColumn] == 0)
+                                        if (field[i, j - iterNext] == 0)
                                         {
-                                            field[i, j - iterColumn] = field[i, j - iterColumnOrigin];
-                                            field[i, j - iterColumnOrigin] = 0;
+                                            field[i, j - iterNext] = field[i, j - iterOriginal];
+                                            field[i, j - iterOriginal] = 0;
                                             moved = true;
                                         }
 
-                                        else if (field[i, j - iterColumn] == field[i, j - iterColumnOrigin] &&
-                                                 iterColumn <=2)
+                                        else if (field[i, j - iterNext] == field[i, j - iterOriginal] &&
+                                                 field[i, j - iterOriginal] != merged)
                                         {
-                                            field[i, j - iterColumn] += field[i, j - iterColumnOrigin];
-                                            field[i, j - iterColumnOrigin] = 0;
-                                            new_score += field[i, j - iterColumn];
+                                            field[i, j - iterNext] += field[i, j - iterOriginal];
+                                            field[i, j - iterOriginal] = 0;
+                                            merged = field[i, j - iterNext];
+                                            newScore += field[i, j - iterNext];
                                             moved = true;
                                         }
                                         else break;
 
-                                        iterColumn += 1;
-                                        iterColumnOrigin += 1;
+                                        iterNext += 1;
+                                        iterOriginal += 1;
                                     }
                                     catch
                                     {
                                         break;
                                     }
                                 }
-
-                                break;
-
-
-                            case "u": //Up
-                                while (true)
-                                {
-                                    try
-                                    {
-                                        if (field[i - iterRow, j] == 0)
-                                        {
-                                            field[i - iterRow, j] = field[i - iterRowOrigin, j];
-                                            field[i - iterRowOrigin, j] = 0;
-                                            moved = true;
-                                        }
-                                        else if (field[i - iterRow, j] == field[i - iterRowOrigin, j] &&
-                                                 lmoved == false)
-                                        {
-                                            field[i - iterRow, j] += field[i - iterRowOrigin, j];
-                                            field[i - iterRowOrigin, j] = 0;
-                                            new_score += field[i - iterRow, j];
-
-                                            moved = true;
-                                            lmoved = true;
-                                        }
-                                        else break;
-
-                                        iterRow += 1;
-                                        iterRowOrigin += 1;
-                                    }
-                                    catch
-                                    {
-                                        break;
-                                    }
-                                }
-
-                                break;
+                            }
                         }
                     }
-                }
-            }
 
-            for (int i = field.GetLength(0) - 1; i >= 0; i--)
-            {
-                bool lmoved = false;
-                for (int j = field.GetLength(1) - 1; j >= 0; j--)
-                {
-                    if (field[i, j] != 0)
+                    break;
+                case "r": //right
+                    for (int i = field.GetLength(0) - 1; i >= 0; i--)
                     {
-                        int iterColumn = 1;
-                        int iterColumnOrigin = 0;
-                        int iterRow = 1;
-                        int iterRowOrigin = 0;
-                        switch (direction)
+                        int merged = 0;
+                        for (int j = field.GetLength(1) - 1; j >= 0; j--)
                         {
-                            case "r": //Right
+                            if (field[i, j] != 0)
+                            {
+                                int iterNext = 1;
+                                int iterOriginal = 0;
                                 while (true)
                                 {
                                     try
                                     {
-                                        if (field[i, j + iterColumn] == 0)
+                                        if (field[i, j + iterNext] == 0)
                                         {
-                                            field[i, j + iterColumn] = field[i, j + iterColumnOrigin];
-                                            field[i, j + iterColumnOrigin] = 0;
+                                            field[i, j + iterNext] = field[i, j + iterOriginal];
+                                            field[i, j + iterOriginal] = 0;
                                             moved = true;
                                         }
 
-                                        else if (field[i, j + iterColumn] == field[i, j + iterColumnOrigin] &&
-                                                 iterColumn <=2)
+                                        else if (field[i, j + iterNext] == field[i, j + iterOriginal] &&
+                                                 field[i, j + iterOriginal] != merged)
                                         {
-                                            field[i, j + iterColumn] += field[i, j + iterColumnOrigin];
-                                            field[i, j + iterColumnOrigin] = 0;
-                                            new_score += field[i, j + iterColumn];
+                                            field[i, j + iterNext] += field[i, j + iterOriginal];
+                                            field[i, j + iterOriginal] = 0;
+                                            merged = field[i, j + iterNext];
+                                            newScore += field[i, j + iterNext];
                                             moved = true;
                                         }
                                         else break;
 
-                                        iterColumn += 1;
-                                        iterColumnOrigin += 1;
+                                        iterNext += 1;
+                                        iterOriginal += 1;
                                     }
                                     catch
                                     {
                                         break;
                                     }
                                 }
-
-                                break;
-
-                            case "d": //Down - does not work
-                                while (true)
-                                {
-                                    try
-                                    {
-                                        if (field[i + iterRow, j] == 0)
-                                        {
-                                            field[i + iterRow, j] = field[i + iterRowOrigin, j];
-                                            field[i + iterRowOrigin, j] = 0;
-                                            moved = true;
-                                        }
-                                        else if (field[i + iterRow, j] == field[i + iterRowOrigin, j] &&
-                                                 lmoved == false)
-                                        {
-                                            field[i + iterRow, j] += field[i + iterRowOrigin, j];
-                                            field[i + iterRowOrigin, j] = 0;
-                                            new_score += field[i + iterRow, j];
-                                            moved = true;
-                                            lmoved = true;
-                                        }
-                                        else break;
-
-                                        iterRow += 1;
-                                        iterRowOrigin += 1;
-                                    }
-                                    catch
-                                    {
-                                        break;
-                                    }
-                                }
-
-                                break;
+                            }
                         }
                     }
-                }
+
+                    break;
+                case "u": //upper
+                    for (int i = 0; i < field.GetLength(0); i++)
+                    {
+                        int merged = 0;
+                        for (int j = 0; j < field.GetLength(1); j++)
+                        {
+                            if (field[j, i] != 0)
+                            {
+                                int iterNext = 1;
+                                int iterOriginal = 0;
+                                 while (true)
+                                 {
+                                     try
+                                     {
+                                         if (field[j - iterNext, i] == 0)
+                                         {
+                                             field[j - iterNext, i] = field[j - iterOriginal, i];
+                                             field[j - iterOriginal, i] = 0;
+                                             moved = true;
+                                         }
+                                         else if (field[j - iterNext, i] == field[j - iterOriginal, i] &&
+                                                  field[j - iterOriginal, i] != merged)
+                                         {
+                                             field[j - iterNext, i] += field[j - iterOriginal, i];
+                                             field[j - iterOriginal, i] = 0;
+                                             merged = field[j - iterNext, i];
+                                             newScore += field[j + iterNext, i];
+                                         
+                                             moved = true;
+                                         }
+                                         else break;
+                                
+                                         iterNext += 1;
+                                         iterOriginal += 1;
+                                     }
+                                     catch
+                                     {
+                                         break;
+                                     }
+                                 }
+                            }
+
+                        }
+                    }
+
+                    break;
+                case "d": //upper
+                    for (int i = 0; i < field.GetLength(0); i++)
+                    {
+                        int merged = 0;
+                        for (int j = field.GetLength(1) - 1; j >= 0; j--)
+                        {
+                            if (field[j, i] != 0)
+                            {
+                                int iterNext = 1;
+                                int iterOriginal = 0;
+                                 while (true)
+                                 {
+                                     try
+                                     {
+                                         if (field[j + iterNext, i] == 0)
+                                         {
+                                             field[j + iterNext, i] = field[j + iterOriginal, i];
+                                             field[j + iterOriginal, i] = 0;
+                                             moved = true;
+                                         }
+                                         else if (field[j + iterNext, i] == field[j + iterOriginal, i] &&
+                                                  field[j + iterOriginal, i] != merged)
+                                         {
+                                             field[j + iterNext, i] += field[j + iterOriginal, i];
+                                             field[j + iterOriginal, i] = 0;
+                                             merged = field[j + iterNext, i];
+                                             newScore += field[j + iterNext, i];
+                                         
+                                             moved = true;
+                                         }
+                                         else break;
+                                
+                                         iterNext += 1;
+                                         iterOriginal += 1;
+                                     }
+                                     catch
+                                     {
+                                         break;
+                                     }
+                                 }
+                            }
+
+                        }
+                    }
+                    break;
             }
 
-            return (moved, new_score);
+            return (moved, newScore);
+
+
         }
     }
 }
