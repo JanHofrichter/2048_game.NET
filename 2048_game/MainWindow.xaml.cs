@@ -2,7 +2,6 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Color = System.Drawing.Color;
 
 
 namespace _2048_game
@@ -93,10 +92,8 @@ namespace _2048_game
             _currentScore += newScore;
             if (CheckGameEnd(_grid))
             {
-                Console.WriteLine("GAME END!");
                 _bestScore = _currentScore;
                 InitializeGrid(true);
-
             }
             else if (moved)
             {
@@ -105,11 +102,56 @@ namespace _2048_game
             }
         }
 
+        private Border CreateCell(int row, int col, string text, SolidColorBrush bordercolor,
+            SolidColorBrush fontcolorsmall, SolidColorBrush fontcolorbig, SolidColorBrush cellcolor)
+        {
+            Border border = new Border
+            {
+                BorderBrush = bordercolor,
+                BorderThickness = new Thickness(10)
+            };
+
+            Grid cellgrid = new Grid
+            {
+                Background = cellcolor // Use color from dictionary
+            };
+            if (text == "0")
+            {
+                text = "";
+            }
+            TextBlock tile = new TextBlock
+            {
+                Text = text,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                FontSize = 30,
+                FontWeight = FontWeights.Bold
+            };
+
+            if (_grid[row, col] <= 4)
+            {
+                tile.Foreground = fontcolorsmall; // Ensure text is visible
+            }
+            else
+            {
+                tile.Foreground = fontcolorbig; // Ensure text is visible
+            }
+
+            cellgrid.Children.Add(tile); // Add TextBlock to the cell Grid
+
+            border.Child = cellgrid;
+
+            Grid.SetRow(border, row);
+            Grid.SetColumn(border, col);
+
+            return border;
+        }
         private void InitializeGrid(bool endGame)
         {
             HerniPole.Children.Clear(); // Clear the grid before adding new tiles
             ScoreTextBlock.Text = $"Score: {_currentScore}";
             BestScoreTextBlock.Text = $"Best: {_bestScore}";
+            
             SolidColorBrush bordercolor;
             SolidColorBrush fontcolorsmall;
             SolidColorBrush fontcolorbig;
@@ -118,32 +160,37 @@ namespace _2048_game
             {
                 bordercolor = _colorFontDictionaryDark[2];
                 fontcolorsmall = _colorFontDictionaryDark[0];
-                fontcolorbig = _colorFontDictionaryDark[1]; 
+                fontcolorbig = _colorFontDictionaryDark[1];
             }
             else
             {
                 bordercolor = _colorFontDictionary[2];
                 fontcolorsmall = _colorFontDictionary[0];
-                fontcolorbig = _colorFontDictionary[1]; 
+                fontcolorbig = _colorFontDictionary[1];
             }
-            
+
+            int maxValue = 0;
             for (int i = 0; i < _grid.GetLength(0); i++)
             {
                 for (int j = 0; j < _grid.GetLength(1); j++)
                 {
+                    if (_grid[i, j] > maxValue)
+                    {
+                        maxValue = _grid[i, j];
+                    }
                     if (endGame)
                     {
                         cellcolor = _colorDictionaryDark[_grid[i, j]];
                         TextBlock gameOverText = new TextBlock
                         {
-                            Text = "GAME OVER!!!",
+                            Text = "!!!!!GAME OVER!!!!!",
                             FontSize = 40,
                             FontWeight = FontWeights.Bold,
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
                             Foreground = Brushes.White
                         };
-                        
+
                         HerniPole.Children.Add(gameOverText);
                         Grid.SetRow(gameOverText, 1); // Place in the center (assuming 4 rows)
                         Grid.SetColumnSpan(gameOverText, 4); // Span across all columns
@@ -152,47 +199,16 @@ namespace _2048_game
                     {
                         cellcolor = _colorDictionary[_grid[i, j]];
                     }
-                    Border border = new Border
-                    {
-                        BorderBrush = bordercolor,
-                        BorderThickness = new Thickness(10)
-                    };
 
-                    Grid cellgrid = new Grid
-                    {
-                        Background = cellcolor // Use color from dictionary
-                    };
-
-                    TextBlock tile = new TextBlock
-                    {
-                        Text = _grid[i, j].ToString(),
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        VerticalAlignment = VerticalAlignment.Center,
-                        FontSize = 30,
-                        FontWeight = FontWeights.Bold
-                    };
-
-                    if (_grid[i, j] <= 4)
-                    {
-                        tile.Foreground = fontcolorsmall; // Ensure text is visible
-                    }
-                    else
-                    {
-                        tile.Foreground = fontcolorbig; // Ensure text is visible
-                    }
-
-                    cellgrid.Children.Add(tile); // Add TextBlock to the cell Grid
-
-                    border.Child = cellgrid;
-
-                    Grid.SetRow(border, i);
-                    Grid.SetColumn(border, j);
+                    Border border = CreateCell(i, j, _grid[i, j].ToString(), bordercolor, fontcolorsmall, fontcolorbig,
+                        cellcolor);
+                    
 
                     HerniPole.Children.Add(border); // Add bordered cell to the outer Grid 
-                    
-                    
                 }
             }
+
+            
         }
 
         private void NewGameButton_Click(object sender, RoutedEventArgs e)
@@ -207,6 +223,13 @@ namespace _2048_game
             StartGame();
         }
 
+        private void NewGameButton_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                NewGameButton_Click(sender, e); 
+            }
+        }
         private void AddRandomTile()
         {
             int row, col;
@@ -219,4 +242,6 @@ namespace _2048_game
             _grid[row, col] = _random.Next(4) != 1 ? 2 : 4;
         }
     }
+    
+
 }
