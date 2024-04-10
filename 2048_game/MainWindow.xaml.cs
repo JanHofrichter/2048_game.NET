@@ -1,8 +1,11 @@
-﻿using System.Security.Cryptography;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.IO;
+using System. Text;  
+
 
 
 namespace _2048_game
@@ -19,15 +22,38 @@ namespace _2048_game
         private readonly Dictionary<int, SolidColorBrush> _colorDictionaryDark = TileColors.TileColorsDark;
         private readonly Dictionary<int, SolidColorBrush> _colorFontDictionaryDark = TileColors.FontColorsDark;
         private readonly TilesMovement _tilesMovement = new TilesMovement();
+        static readonly string _workingDirectory = Environment.CurrentDirectory;
+        static readonly string ProjectDirectory = Directory.GetParent(_workingDirectory).Parent.Parent.FullName;
+        readonly string _path = ProjectDirectory + @"\PreviousGame.txt";
 
         public MainWindow()
         {
             InitializeComponent();
+            if (File.Exists(_path))
+            {
+                bool previousGameLoaded = DataWindow_Opening();
+                if (previousGameLoaded)
+                {
+                    InitializeGrid(false);
+                }
+                else
+                {
+                    StartGame();
+                }
+            }
+            else
+            {
+                StartGame();
+            }
             this.KeyUp += (sender, e) =>
             {
                 var (moved, newScore) = _tilesMovement.Key_Pressed(e, _grid);
                 
                 _currentScore += newScore;
+                if (_currentScore > _bestScore)
+                {
+                    _bestScore = _currentScore;
+                }
                 if (_tilesMovement.CheckGameEnd(_grid))
                 {
                     _bestScore = _currentScore;
@@ -39,7 +65,6 @@ namespace _2048_game
                     InitializeGrid(false);
                 }
             };
-            
         }
 
         private void StartGame()
@@ -126,15 +151,10 @@ namespace _2048_game
                 fontcolorbig = _colorFontDictionary[1];
             }
 
-            int maxValue = 0;
             for (int i = 0; i < _grid.GetLength(0); i++)
             {
                 for (int j = 0; j < _grid.GetLength(1); j++)
                 {
-                    if (_grid[i, j] > maxValue)
-                    {
-                        maxValue = _grid[i, j];
-                    }
                     if (endGame)
                     {
                         cellcolor = _colorDictionaryDark[NumberInRange(_grid[i, j])];
@@ -154,7 +174,7 @@ namespace _2048_game
                     }
                     else
                     {
-                        cellcolor = cellcolor = _colorDictionary[NumberInRange(_grid[i, j])];
+                        cellcolor = _colorDictionary[NumberInRange(_grid[i, j])];
                     }
 
                     Border border = CreateCell(i, j, _grid[i, j].ToString(), bordercolor, fontcolorsmall, fontcolorbig,
@@ -187,6 +207,97 @@ namespace _2048_game
                 NewGameButton_Click(sender, e); 
             }
         }
-        
+
+
+        private void DataWindow_Closing(object? sender, CancelEventArgs e)
+        {
+            // MessageBox.Show("Do you want to save your LAST GAME and BEST?");
+            string msg = "Do you want to save your LAST GAME and BEST SCORE?";
+            MessageBoxResult result = 
+                MessageBox.Show(
+                    msg, 
+                    "2048_game", 
+                    MessageBoxButton.YesNo, 
+                    MessageBoxImage.Exclamation);
+            if (result == MessageBoxResult.Yes)
+            {
+                string workingDirectory = Environment.CurrentDirectory;
+                string projectDirectory = Directory.GetParent(workingDirectory).Parent.Parent.FullName;
+
+                // Write the string array to a new file named "WriteLines.txt".
+                using (StreamWriter outputFile = new StreamWriter(Path.Combine(projectDirectory, "PreviousGame.txt")))
+                {
+                    outputFile.WriteLine("Best:"+_bestScore);
+                    outputFile.WriteLine("Current:"+_currentScore);
+                    for (int i = 0; i < _grid.GetLength(0); i++)
+                    {
+                        for (int j = 0; j < _grid.GetLength(1); j++)
+                        {
+                            outputFile.WriteLine(_grid[i,j]);
+                        }
+                    }
+                }
+            }
+        }
+        private bool DataWindow_Opening()
+        {
+            var f = new FileInfo(_path);
+
+            // MessageBox.Show("Do you want to save your LAST GAME and BEST?");
+            string msg = "Do you want to load SAVED GAME and BEST SCORE?";
+            MessageBoxResult result = 
+                MessageBox.Show(
+                    msg, 
+                    "2048_game", 
+                    MessageBoxButton.YesNo, 
+                    MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                int row = -2;
+                List<string> res = null;
+                
+                using (FileStream fs = File.Open(_path, FileMode.Open, FileAccess.Read, FileShare.None))  
+                {  
+                    byte[] b = new byte[1024];  
+                    UTF8Encoding temp = new UTF8Encoding(true);  
+                    
+                    while (fs.Read(b,0,b.Length) > 0)  
+                    {
+                        res = temp.GetString(b).Split('\n').ToList();
+                    }
+                }
+
+                for (int i = 0; i < res.Count - 1; i++)
+                {
+                    if (res[i].Contains("Best:"))
+                    {
+                        string changedString = res[i].Substring(5);  // Extract the part after "Best:"
+                        int cellValue = int.Parse(changedString);
+                        _bestScore = cellValue;                        
+                        row += 1;
+                    }
+                    else if (res[i].Contains("Current:"))
+                    {
+                        string changedString = res[i].Substring(8);  // Extract the part after "Best:"
+                        int cellValue = int.Parse(changedString);
+                        _currentScore = cellValue;                        
+                        row += 1;
+                    }
+                    else
+                    {
+                        int gridRow = row / 4;
+                        int gridCol = row % 4;
+                        _grid[gridRow, gridCol] = int.Parse(res[i]);
+                        row += 1;
+                    }
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
     }
 }
