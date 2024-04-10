@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Security.Cryptography;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -8,107 +9,53 @@ namespace _2048_game
 {
     public partial class MainWindow
     {
-        private readonly Random _random = new Random();
         private const int GridSize = 4;
         private int[,] _grid = new int[GridSize, GridSize];
         private int _currentScore;
         private int _bestScore;
         private static readonly TileColors TileColors = new TileColors();
         private readonly Dictionary<int, SolidColorBrush> _colorDictionary = TileColors._tileColors;
-        private readonly Dictionary<int, SolidColorBrush> _colorFontDictionary = TileColors._fontColors;
-        private readonly Dictionary<int, SolidColorBrush> _colorDictionaryDark = TileColors._tileColorsDark;
-        private readonly Dictionary<int, SolidColorBrush> _colorFontDictionaryDark = TileColors._fontColorsDark;
+        private readonly Dictionary<int, SolidColorBrush> _colorFontDictionary = TileColors.FontColors;
+        private readonly Dictionary<int, SolidColorBrush> _colorDictionaryDark = TileColors.TileColorsDark;
+        private readonly Dictionary<int, SolidColorBrush> _colorFontDictionaryDark = TileColors.FontColorsDark;
+        private readonly TilesMovement _tilesMovement = new TilesMovement();
 
         public MainWindow()
         {
             InitializeComponent();
-
-            MoveFieldsFunction moveFieldsFunction = new MoveFieldsFunction();
-
-
-            this.KeyUp += (sender, e) => Key_Pressed(e, moveFieldsFunction);
+            this.KeyUp += (sender, e) =>
+            {
+                var (moved, newScore) = _tilesMovement.Key_Pressed(e, _grid);
+                
+                _currentScore += newScore;
+                if (_tilesMovement.CheckGameEnd(_grid))
+                {
+                    _bestScore = _currentScore;
+                    InitializeGrid(true);
+                }
+                else if (moved)
+                {
+                    _tilesMovement.AddRandomTile(GridSize, _grid);
+                    InitializeGrid(false);
+                }
+            };
+            
         }
 
         private void StartGame()
         {
-            AddRandomTile();
-            AddRandomTile();
+            _tilesMovement.AddRandomTile(GridSize, _grid);
+            _tilesMovement.AddRandomTile(GridSize, _grid);
             InitializeGrid(false);
         }
-
-        private bool CheckGameEnd(int[,] field)
-        {
-            for (int i = 0; i < field.GetLength(0); i++)
-            {
-                for (int j = 0; j < field.GetLength(1); j++)
-                {
-                    if (field[i, j] == 0)
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        try
-                        {
-                            if (field[i, j] == field[i + 1, j])
-                            {
-                                return false;
-                            }
-                        }
-                        catch
-                        {
-                            // ignored
-                        }
-
-                        try
-                        {
-                            if (field[i, j] == field[i, j + 1])
-                            {
-                                return false;
-                            }
-                        }
-                        catch
-                        {
-                            //ignored
-                        }
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        private void Key_Pressed(KeyEventArgs e,
-            MoveFieldsFunction moveFieldsFunction)
-        {
-            var (moved, newScore) = e.Key switch
-            {
-                Key.Left => moveFieldsFunction.MoveFields("l", _grid),
-                Key.Right => moveFieldsFunction.MoveFields("r", _grid),
-                Key.Up => moveFieldsFunction.MoveFields("u", _grid),
-                Key.Down => moveFieldsFunction.MoveFields("d", _grid),
-                _ => (false, 0)
-            };
-            _currentScore += newScore;
-            if (CheckGameEnd(_grid))
-            {
-                _bestScore = _currentScore;
-                InitializeGrid(true);
-            }
-            else if (moved)
-            {
-                AddRandomTile();
-                InitializeGrid(false);
-            }
-        }
-
+        
         private Border CreateCell(int row, int col, string text, SolidColorBrush bordercolor,
             SolidColorBrush fontcolorsmall, SolidColorBrush fontcolorbig, SolidColorBrush cellcolor)
         {
             Border border = new Border
             {
                 BorderBrush = bordercolor,
-                BorderThickness = new Thickness(10)
+                BorderThickness = new Thickness(15)
             };
 
             Grid cellgrid = new Grid
@@ -124,7 +71,7 @@ namespace _2048_game
                 Text = text,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
-                FontSize = 30,
+                FontSize = 45,
                 FontWeight = FontWeights.Bold
             };
 
@@ -145,6 +92,16 @@ namespace _2048_game
             Grid.SetColumn(border, col);
 
             return border;
+        }
+
+        private int NumberInRange(int number)
+        {
+            if (number > 2048)
+            {
+                number = 3000;
+            }
+
+            return number;
         }
         private void InitializeGrid(bool endGame)
         {
@@ -180,7 +137,7 @@ namespace _2048_game
                     }
                     if (endGame)
                     {
-                        cellcolor = _colorDictionaryDark[_grid[i, j]];
+                        cellcolor = _colorDictionaryDark[NumberInRange(_grid[i, j])];
                         TextBlock gameOverText = new TextBlock
                         {
                             Text = "!!!!!GAME OVER!!!!!",
@@ -197,7 +154,7 @@ namespace _2048_game
                     }
                     else
                     {
-                        cellcolor = _colorDictionary[_grid[i, j]];
+                        cellcolor = cellcolor = _colorDictionary[NumberInRange(_grid[i, j])];
                     }
 
                     Border border = CreateCell(i, j, _grid[i, j].ToString(), bordercolor, fontcolorsmall, fontcolorbig,
@@ -230,18 +187,6 @@ namespace _2048_game
                 NewGameButton_Click(sender, e); 
             }
         }
-        private void AddRandomTile()
-        {
-            int row, col;
-            do
-            {
-                row = _random.Next(0, GridSize);
-                col = _random.Next(0, GridSize);
-            } while (_grid[row, col] != 0);
-
-            _grid[row, col] = _random.Next(4) != 1 ? 2 : 4;
-        }
+        
     }
-    
-
 }
