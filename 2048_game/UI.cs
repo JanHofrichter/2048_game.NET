@@ -6,25 +6,25 @@ using System.Windows.Media;
 
 namespace _2048_game;
 
-public class UI
+public class Ui
 {
-    public Border CreateCell(int row, int col, int[,] _grid, SolidColorBrush bordercolor,
-        SolidColorBrush fontcolorsmall, SolidColorBrush fontcolorbig, SolidColorBrush cellcolor)
+    public static Border CreateCell(int row, int col, int[,] grid, SolidColorBrush borderColor,
+        SolidColorBrush fontColorSmall, SolidColorBrush fontColorBig, SolidColorBrush cellColor)
     {
         string text = "";
         Border border = new Border
         {
-            BorderBrush = bordercolor,
-            BorderThickness = new Thickness(15)
+            BorderBrush = borderColor,
+            BorderThickness = new Thickness(6),
         };
 
         Grid cellgrid = new Grid
         {
-            Background = cellcolor // Use color from dictionary
+            Background = cellColor // Use color from dictionary
         };
-        if (_grid[row, col] != 0)
+        if (grid[row, col] != 0)
         {
-            text = _grid[row, col].ToString();
+            text = grid[row, col].ToString();
         }
 
         TextBlock tile = new TextBlock
@@ -32,24 +32,24 @@ public class UI
             Text = text,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
-            FontSize = 45,
+            FontSize = 35,
             FontWeight = FontWeights.Bold
         };
 
-        if (_grid[row, col] <= 4)
+        if (grid[row, col] <= 4)
         {
-            tile.Foreground = fontcolorsmall; // Ensure text is visible
+            tile.Foreground = fontColorSmall; 
         }
         else
         {
-            tile.Foreground = fontcolorbig; // Ensure text is visible
+            tile.Foreground = fontColorBig; 
         }
 
         cellgrid.Children.Add(tile); // Add TextBlock to the cell Grid
 
         border.Child = cellgrid;
 
-        Grid.SetRow(border, row);
+        Grid.SetRow(border, row); // place in row and col
         Grid.SetColumn(border, col);
 
         return border;

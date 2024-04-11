@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("2048_game")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1bbd7830ca9a13dc2c0d3033b3f424b4fd1f6162")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ca94018a6643a74fcacc113fcf50a2b0d2e05053")]
 [assembly: System.Reflection.AssemblyProductAttribute("2048_game")]
 [assembly: System.Reflection.AssemblyTitleAttribute("2048_game")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

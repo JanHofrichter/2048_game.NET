@@ -12,26 +12,26 @@ namespace _2048_game
     public partial class MainWindow
     {
         const int GridSize = 4;
-        public int[,] _grid = new int[GridSize, GridSize];
-        public int _currentScore;
-        public int _bestScore;
+        private int[,] _grid = new int[GridSize, GridSize];
+        private int _currentScore;
+        private int _bestScore;
         private static readonly TileColors TileColors = new TileColors();
         private readonly Dictionary<int, SolidColorBrush> _colorDictionary = TileColors._tileColors;
         private readonly Dictionary<int, SolidColorBrush> _colorFontDictionary = TileColors.FontColors;
         private readonly Dictionary<int, SolidColorBrush> _colorDictionaryDark = TileColors.TileColorsDark;
         private readonly Dictionary<int, SolidColorBrush> _colorFontDictionaryDark = TileColors.FontColorsDark;
         private readonly TilesMovement _tilesMovement = new TilesMovement();
-        private readonly UI _ui = new UI();
-        static readonly string _workingDirectory = Environment.CurrentDirectory;
-        static readonly string ProjectDirectory = Directory.GetParent(_workingDirectory).Parent.Parent.FullName;
-        public readonly string _path = ProjectDirectory + @"\PreviousGame.txt";
+        private readonly Ui _ui = new Ui();
+        static readonly string WorkingDirectory = Environment.CurrentDirectory;
+        static readonly string? ProjectDirectory = Directory.GetParent(WorkingDirectory)?.Parent?.Parent?.FullName;
+        private readonly string Path = ProjectDirectory + @"\PreviousGame.txt";
 
         public MainWindow()
         {
             InitializeComponent();
-            if (File.Exists(_path))
+            if (File.Exists(Path))
             {
-                bool previousGameLoaded = DataWindow_Opening();
+                bool previousGameLoaded = LoadPreviousGameState();
                 if (previousGameLoaded)
                 {
                     InitializeGrid(false);
@@ -49,7 +49,6 @@ namespace _2048_game
             this.KeyUp += (sender, e) =>
             {
                 var (moved, newScore) = _tilesMovement.Key_Pressed(e, _grid);
-
                 _currentScore += newScore;
                 if (_currentScore > _bestScore)
                 {
@@ -58,7 +57,6 @@ namespace _2048_game
 
                 if (_tilesMovement.CheckGameEnd(_grid))
                 {
-                    _bestScore = _currentScore;
                     InitializeGrid(true);
                 }
                 else if (moved)
@@ -91,35 +89,37 @@ namespace _2048_game
             HerniPole.Children.Clear(); // Clear the grid before adding new tiles
             ScoreTextBlock.Text = $"Score: {_currentScore}";
             BestScoreTextBlock.Text = $"Best: {_bestScore}";
-
-            SolidColorBrush bordercolor;
-            SolidColorBrush fontcolorsmall;
-            SolidColorBrush fontcolorbig;
-            SolidColorBrush cellcolor;
+            //Setting colors
+            SolidColorBrush borderColor;
+            SolidColorBrush fontColorSmall;
+            SolidColorBrush fontColorBig;
+            SolidColorBrush cellColor;
             if (endGame)
             {
-                bordercolor = _colorFontDictionaryDark[2];
-                fontcolorsmall = _colorFontDictionaryDark[0];
-                fontcolorbig = _colorFontDictionaryDark[1];
+                borderColor = _colorFontDictionaryDark[2];
+                fontColorSmall = _colorFontDictionaryDark[0];
+                fontColorBig = _colorFontDictionaryDark[1];
             }
             else
             {
-                bordercolor = _colorFontDictionary[2];
-                fontcolorsmall = _colorFontDictionary[0];
-                fontcolorbig = _colorFontDictionary[1];
+                borderColor = _colorFontDictionary[2];
+                fontColorSmall = _colorFontDictionary[0];
+                fontColorBig = _colorFontDictionary[1];
             }
 
-            for (int i = 0; i < _grid.GetLength(0); i++)
+            Border.BorderBrush = borderColor;
+
+            for (int row = 0; row < _grid.GetLength(0); row++)
             {
-                for (int j = 0; j < _grid.GetLength(1); j++)
+                for (int col = 0; col < _grid.GetLength(1); col++)
                 {
                     if (endGame)
                     {
-                        cellcolor = _colorDictionaryDark[NumberInRange(_grid[i, j])];
+                        cellColor = _colorDictionaryDark[NumberInRange(_grid[row, col])];
                         TextBlock gameOverText = new TextBlock
                         {
-                            Text = "!!!!!GAME OVER!!!!!",
-                            FontSize = 40,
+                            Text = "GAME OVER!",
+                            FontSize = 55,
                             FontWeight = FontWeights.Bold,
                             HorizontalAlignment = HorizontalAlignment.Center,
                             VerticalAlignment = VerticalAlignment.Center,
@@ -127,16 +127,16 @@ namespace _2048_game
                         };
 
                         HerniPole.Children.Add(gameOverText);
-                        Grid.SetRow(gameOverText, 1); // Place in the center (assuming 4 rows)
+                        Grid.SetRow(gameOverText, 1); // Place in the center
                         Grid.SetColumnSpan(gameOverText, 4); // Span across all columns
                     }
                     else
                     {
-                        cellcolor = _colorDictionary[NumberInRange(_grid[i, j])];
+                        cellColor = _colorDictionary[NumberInRange(_grid[row, col])];
                     }
 
-                    Border border = _ui.CreateCell(i, j, _grid, bordercolor, fontcolorsmall, fontcolorbig,
-                        cellcolor);
+                    Border border = Ui.CreateCell(row, col, _grid, borderColor, fontColorSmall, fontColorBig,
+                        cellColor);
 
 
                     HerniPole.Children.Add(border); // Add bordered cell to the outer Grid 
@@ -164,12 +164,9 @@ namespace _2048_game
             }
         }
 
-        private bool DataWindow_Opening()
+        private bool LoadPreviousGameState()
         {
-            var f = new FileInfo(_path);
-
-            // MessageBox.Show("Do you want to save your LAST GAME and BEST?");
-            string msg = "Do you want to load SAVED GAME and BEST SCORE?";
+            const string msg = "Do you want to load SAVED GAME and BEST SCORE?";
             MessageBoxResult result =
                 MessageBox.Show(
                     msg,
@@ -178,46 +175,54 @@ namespace _2048_game
                     MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
-                int row = -2;
-                List<string> res = null;
-
-                using (FileStream fs = File.Open(_path, FileMode.Open, FileAccess.Read, FileShare.None))
+                try
                 {
-                    byte[] b = new byte[1024];
-                    UTF8Encoding temp = new UTF8Encoding(true);
+                    int row = -2;
+                    List<string>? res = null;
 
-                    while (fs.Read(b, 0, b.Length) > 0)
+                    using (FileStream fs = File.Open(Path, FileMode.Open, FileAccess.Read, FileShare.None))
                     {
-                        res = temp.GetString(b).Split('\n').ToList();
-                    }
-                }
+                        byte[] b = new byte[1024];
+                        UTF8Encoding temp = new UTF8Encoding(true);
 
-                for (int i = 0; i < res.Count - 1; i++)
+                        while (fs.Read(b, 0, b.Length) > 0) //load file content in res
+                        {
+                            res = temp.GetString(b).Split('\n').ToList();
+                        }
+                    }
+
+                    //try recreating grid
+                    for (int i = 0; i < res.Count - 1; i++)
+                    {
+                        if (res[i].Contains("Best:"))
+                        {
+                            string changedString = res[i].Substring(5); // Extract the part after "Best:"
+                            int cellValue = int.Parse(changedString);
+                            _bestScore = cellValue;
+                            row += 1;
+                        }
+                        else if (res[i].Contains("Current:"))
+                        {
+                            string changedString = res[i].Substring(8); // Extract the part after "Best:"
+                            int cellValue = int.Parse(changedString);
+                            _currentScore = cellValue;
+                            row += 1;
+                        }
+                        else
+                        {
+                            int gridRow = row / 4;
+                            int gridCol = row % 4;
+                            _grid[gridRow, gridCol] = int.Parse(res[i]);
+                            row += 1;
+                        }
+                    }
+
+                    return true;
+                }
+                catch
                 {
-                    if (res[i].Contains("Best:"))
-                    {
-                        string changedString = res[i].Substring(5); // Extract the part after "Best:"
-                        int cellValue = int.Parse(changedString);
-                        _bestScore = cellValue;
-                        row += 1;
-                    }
-                    else if (res[i].Contains("Current:"))
-                    {
-                        string changedString = res[i].Substring(8); // Extract the part after "Best:"
-                        int cellValue = int.Parse(changedString);
-                        _currentScore = cellValue;
-                        row += 1;
-                    }
-                    else
-                    {
-                        int gridRow = row / 4;
-                        int gridCol = row % 4;
-                        _grid[gridRow, gridCol] = int.Parse(res[i]);
-                        row += 1;
-                    }
+                    return false;
                 }
-
-                return true;
             }
             else
             {
@@ -225,7 +230,7 @@ namespace _2048_game
             }
         }
 
-        private void DataWindow_Closing(object? sender, CancelEventArgs e)
+        private void HandleClosingApp(object? sender, CancelEventArgs e)
         {
             // MessageBox.Show("Do you want to save your LAST GAME and BEST?");
             string msg = "Do you want to save your LAST GAME and BEST SCORE?";
@@ -238,19 +243,18 @@ namespace _2048_game
             if (result == MessageBoxResult.Yes)
             {
                 string workingDirectory = Environment.CurrentDirectory;
-                string projectDirectory = Directory.GetParent(workingDirectory).Parent.Parent.FullName;
+                string? projectDirectory = Directory.GetParent(workingDirectory)?.Parent?.Parent?.FullName;
 
                 // Write the string array to a new file named "WriteLines.txt".
-                using (StreamWriter outputFile = new StreamWriter(Path.Combine(projectDirectory, "PreviousGame.txt")))
+                using StreamWriter outputFile =
+                    new StreamWriter(System.IO.Path.Combine(projectDirectory, "PreviousGame.txt"));
+                outputFile.WriteLine("Best:" + _bestScore);
+                outputFile.WriteLine("Current:" + _currentScore);
+                for (int row = 0; row < _grid.GetLength(0); row++)
                 {
-                    outputFile.WriteLine("Best:" + _bestScore);
-                    outputFile.WriteLine("Current:" + _currentScore);
-                    for (int i = 0; i < _grid.GetLength(0); i++)
+                    for (int col = 0; col < _grid.GetLength(1); col++)
                     {
-                        for (int j = 0; j < _grid.GetLength(1); j++)
-                        {
-                            outputFile.WriteLine(_grid[i, j]);
-                        }
+                        outputFile.WriteLine(_grid[row, col]);
                     }
                 }
             }
