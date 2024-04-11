@@ -15,59 +15,60 @@
             <ColumnDefinition Width="0.30*" />
             <ColumnDefinition Width="0.15*" />
         </Grid.ColumnDefinitions>
-
-        <Grid Grid.Row="0" Grid.Column="1" Margin="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="0.3*" />
-                <ColumnDefinition Width="0.4*" />
-                <ColumnDefinition Width="0.3*" />
-            </Grid.ColumnDefinitions>
-
-
-            <TextBlock Text="2048" FontSize="60" FontWeight="Bold" Foreground="#776e63" Grid.Column="0"
+        <Viewbox>
+            <TextBlock Text="2048" FontSize="70" FontWeight="Bold" Foreground="#776e63"
                        VerticalAlignment="Center" HorizontalAlignment="Left" />
-
-            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center"
-                        Grid.Column="1" Margin="0">
+        </Viewbox>
+        <Viewbox Grid.Row="0" Grid.Column="1">
+            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0">
                 <TextBlock x:Name="ScoreTextBlock" Text="Score: 0" FontWeight="Bold" FontSize="20" Margin="10"
-                           Foreground="#907a65" />
-                <TextBlock x:Name="BestScoreTextBlock" Text="Best:    0" FontWeight="Bold" FontSize="20" Margin="10"
-                           Foreground="#907a65" />
+                           Foreground="#907a65" HorizontalAlignment="Right" />
+                <TextBlock x:Name="BestScoreTextBlock" Text="Best: 0" FontWeight="Bold" FontSize="20" Margin="10"
+                           Foreground="#907a65" HorizontalAlignment="Right" />
             </StackPanel>
-
-            <Button x:Name="NewGameButton" FontWeight="Bold" Content="New Game" FontSize="20"
+        </Viewbox>
+        <Viewbox Grid.Row="0" Grid.Column="2">
+            <Button x:Name="NewGameButton" FontWeight="Bold" Content="New Game" FontSize="15"
                     HorizontalAlignment="Right"
-                    Click="NewGameButton_Click" KeyDown="NewGameButton_KeyDown" Margin="10" Height="40" MinHeight="40"
-                    Grid.Column="2"
-                    IsDefault="True" Foreground="White" BorderBrush="#A9A9A9" Background="#907a65" />
-        </Grid>
-        <Grid Grid.Row="1" Grid.Column="1" Background="Transparent">
+                    Click="NewGameButton_Click" KeyDown="NewGameButton_KeyDown" Margin="10" Height="30" Width="100"
+                    MinHeight="40"
+                    IsDefault="True" Foreground="White" BorderBrush="#A9A9A9" Background="#907a65"> <Button.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" 
+                            Value="3" /> 
+                </Style>
+            </Button.Resources> </Button>
+        </Viewbox>
+        <Viewbox Grid.Row="1" Grid.Column="1">
+        <Grid Background="Transparent">
             <Border x:Name="Border" BorderThickness="6" BorderBrush="White" Margin="30" CornerRadius="5">
                 <Grid x:Name="HerniPole" ShowGridLines="False">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="100" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="*" />
+                        <RowDefinition Height="100" />
+                        <RowDefinition Height="100" />
+                        <RowDefinition Height="100" />
+                        <RowDefinition Height="100" />
                     </Grid.RowDefinitions>
                 </Grid>
             </Border>
         </Grid>
-        <Grid Grid.Row="2" Grid.Column="1" Background="Transparent" Margin="5">
-            <StackPanel Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Center"
-                        >
-                <TextBlock Text="HOW TO PLAY: Move tiles using arrow keys or WSAD, reach 2048!" FontWeight="Bold" FontSize="14" Margin="5"
+        </Viewbox>
+        <Viewbox Grid.Row="2" Grid.Column="1" Margin="5">
+            <StackPanel Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <TextBlock Text="HOW TO PLAY: Move tiles using arrow keys or WSAD, reach 2048!" FontWeight="Bold"
+                           FontSize="14" Margin="5"
                            Foreground="#907a65" />
-                <TextBlock Text="- restart game pressing ENTER or click button" FontWeight="Bold" FontSize="14" Margin="5"
+                <TextBlock Text="- restart game pressing ENTER or click button" FontWeight="Bold" FontSize="14"
+                           Margin="5"
                            Foreground="#907a65" />
             </StackPanel>
-        </Grid>
+        </Viewbox>
 
     </Grid>
 </Window>
